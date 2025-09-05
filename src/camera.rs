@@ -23,7 +23,7 @@ impl Camera {
         }
 
         let mut scroll = mouse_wheel().1;
-        scroll = if scroll > 0.0 { 1.0 } else { -1.0 };
+        scroll = if scroll > 0.0 { 1.0 } else if scroll < 0.0 { -1.0 } else { 0.0 };
         self.zoom *= (scroll + 1.0) / 2.0 + 0.5;
 
         self.camera.target = self.camera.target * 0.9 + self.target * 0.1;
