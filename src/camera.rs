@@ -22,7 +22,8 @@ impl Camera {
             self.target += mouse_delta_position() / self.zoom;
         }
 
-        let scroll = mouse_wheel().1;
+        let mut scroll = mouse_wheel().1;
+        scroll = if scroll > 0.0 { 1.0 } else { -1.0 };
         self.zoom *= (scroll + 1.0) / 2.0 + 0.5;
 
         self.camera.target = self.camera.target * 0.9 + self.target * 0.1;
