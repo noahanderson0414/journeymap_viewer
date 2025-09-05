@@ -15,6 +15,7 @@ impl Chunk {
         let captures = regex.captures(file_name).unwrap();
 
         let texture = load_texture(path).await.unwrap();
+        texture.set_filter(FilterMode::Nearest);
 
         Self {
             position: vec2(
