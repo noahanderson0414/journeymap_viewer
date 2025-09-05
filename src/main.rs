@@ -1,13 +1,16 @@
 mod camera;
+mod options;
 mod ui;
 mod world;
 
-use crate::{ui::*, world::World};
+use crate::{options::Options, ui::*, world::World};
 use macroquad::prelude::*;
 use rfd::FileDialog;
 
 #[macroquad::main("Journeymap Viewer")]
 async fn main() {
+    let mut ui = UI::default();
+    let mut options = Options::default();
     let mut world: Option<World> = None;
 
     let mut exit_requested = false;
@@ -15,24 +18,17 @@ async fn main() {
     loop {
         clear_background(BLACK);
 
-        // Process keys, mouse etc.
-        
-        if let Some(world) = &mut world {
-            world.update();
-        }
-
-        let requests = update_ui(&world);
+        let mut pointer_requested = false;
+        let requests = ui.update(&mut options, &world);
         for request in requests.iter() {
             match request {
                 Request::LoadWorld => {
-                    let directory = FileDialog::new()
-                        .set_directory("/")
-                        .pick_folder();
-                    
+                    let directory = FileDialog::new().set_directory("/").pick_folder();
+
                     if let Some(directory) = directory {
                         world = Some(World::from_directory(directory.to_str().unwrap()).await);
                     }
-                },
+                }
                 Request::ReloadWorld => {
                     if let Some(world) = &mut world {
                         world.reload().await;
@@ -40,12 +36,13 @@ async fn main() {
                 }
                 Request::UnloadWorld => world = None,
                 Request::Exit => exit_requested = true,
+                Request::Pointer => pointer_requested = true,
             }
         }
 
-        // Draw things before egui
+        if let Some(world) = &mut world {
+            world.update(&options, pointer_requested);
 
-        if let Some(world) = &world {
             set_camera(&world.camera.camera);
             world.draw();
         }
@@ -53,10 +50,8 @@ async fn main() {
         set_default_camera();
         egui_macroquad::draw();
 
-        // Draw things after egui
-
         next_frame().await;
-        
+
         if exit_requested {
             break;
         }

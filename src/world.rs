@@ -1,4 +1,4 @@
-use crate::camera;
+use crate::{camera, options::Options};
 use macroquad::prelude::*;
 use regex::Regex;
 use std::path::Path;
@@ -46,14 +46,14 @@ impl World {
         for entry in entries.iter() {
             chunks.push(Chunk::load_from_file(entry.to_str().unwrap()).await);
         }
-        
+
         Self {
             camera: Default::default(),
             path: String::from(path),
             chunks,
         }
     }
-    
+
     pub async fn reload(&mut self) {
         let entries = std::fs::read_dir(self.path.as_str())
             .unwrap()
@@ -65,15 +65,15 @@ impl World {
         for entry in entries.iter() {
             chunks.push(Chunk::load_from_file(entry.to_str().unwrap()).await);
         }
-        
+
         self.camera = Default::default();
         self.chunks = chunks;
     }
-    
-    pub fn update(&mut self) {
-        self.camera.update();
+
+    pub fn update(&mut self, options: &Options, pointer_requested: bool) {
+        self.camera.update(options, pointer_requested);
     }
-    
+
     pub fn draw(&self) {
         for chunk in self.chunks.iter() {
             draw_texture(&chunk.texture, chunk.position.x, chunk.position.y, WHITE);
