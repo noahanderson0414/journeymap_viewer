@@ -1,6 +1,9 @@
+use std::path::Path;
+
 use crate::{options::Options, world::World};
-use egui_macroquad::egui::{self, panel::TopBottomSide, Align2, TextStyle};
+use egui_macroquad::egui::{self, panel::TopBottomSide, Align2, FontSelection, TextStyle};
 use macroquad::prelude::*;
+use rfd::FileDialog;
 
 pub enum Request {
     LoadWorld,
@@ -54,15 +57,53 @@ impl UI {
                 })
             });
 
+            if options.game_path.is_empty() {
+                self.show_options = true;
+            }
+
             egui::Window::new("Options")
                 .open(&mut self.show_options)
                 .default_pos(egui_ctx.available_rect().center())
                 .resizable(false)
                 .collapsible(false)
                 .show(egui_ctx, |ui| {
-                    ui.add(egui::Slider::new(&mut options.minimum_zoom, 0.0001..=options.maximum_zoom));
-                    ui.add(egui::Slider::new(&mut options.maximum_zoom, options.minimum_zoom..=1.));
+                    ui.horizontal(|ui| {
+                        ui.label("Game Path");
+                        
+                        if Path::new(options.game_path.as_str()).try_exists().is_ok_and(|x| !x) {
+                            ui.separator();
+                            ui.add(egui::Label::new("Invalid path!"));
+                        }
+                    });
                     
+                    ui.horizontal(|ui| {
+                        ui.add(egui::TextEdit::singleline(&mut options.game_path));
+                        
+                        if ui.button("...").clicked() {
+                            let directory = FileDialog::new().set_directory("/").pick_folder();
+
+                            if let Some(directory) = directory {
+                                options.game_path = String::from(directory.to_str().unwrap());
+                            }
+                        }
+                    });
+                    
+                    ui.separator();
+
+                    ui.label("Minimum Zoom");
+                    ui.add(egui::Slider::new(
+                        &mut options.minimum_zoom,
+                        0.0001..=options.maximum_zoom,
+                    ));
+
+                    ui.label("Maximum Zoom");
+                    ui.add(egui::Slider::new(
+                        &mut options.maximum_zoom,
+                        options.minimum_zoom..=1.,
+                    ));
+                    
+                    ui.separator();
+
                     if ui.button("Reset to Default").clicked() {
                         *options = Options::default();
                     }

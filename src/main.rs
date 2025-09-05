@@ -13,9 +13,7 @@ async fn main() {
     let mut options = Options::default();
     let mut world: Option<World> = None;
 
-    let mut exit_requested = false;
-
-    loop {
+    'main_loop: loop {
         clear_background(BLACK);
 
         let mut pointer_requested = false;
@@ -35,7 +33,7 @@ async fn main() {
                     }
                 }
                 Request::UnloadWorld => world = None,
-                Request::Exit => exit_requested = true,
+                Request::Exit => break 'main_loop,
                 Request::Pointer => pointer_requested = true,
             }
         }
@@ -51,9 +49,5 @@ async fn main() {
         egui_macroquad::draw();
 
         next_frame().await;
-
-        if exit_requested {
-            break;
-        }
     }
 }

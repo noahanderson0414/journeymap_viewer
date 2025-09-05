@@ -40,7 +40,9 @@ impl Default for Camera {
 
 impl Camera {
     pub fn update(&mut self, options: &Options, pointer_requested: bool) {
-        if pointer_requested { return; }
+        if pointer_requested {
+            return;
+        }
 
         if is_mouse_button_pressed(MouseButton::Left) {
             let now = Instant::now();
@@ -73,7 +75,7 @@ impl Camera {
             scroll /= scroll.abs();
             self.zoom *= (scroll + 1.0) / 2.0 + 0.5;
         }
-        
+
         self.zoom = self.zoom.clamp(options.minimum_zoom, options.maximum_zoom);
 
         let delta = get_frame_time();
