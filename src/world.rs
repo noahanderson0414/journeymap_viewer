@@ -1,3 +1,4 @@
+use crate::camera;
 use macroquad::prelude::*;
 use regex::Regex;
 use std::path::Path;
@@ -28,11 +29,13 @@ impl Chunk {
 }
 
 pub struct World {
+    pub camera: camera::Camera,
+    pub path: String,
     pub chunks: Vec<Chunk>,
 }
 
 impl World {
-    pub async fn load_from_directory(path: &str) -> Self {
+    pub async fn from_directory(path: &str) -> Self {
         let entries = std::fs::read_dir(path)
             .unwrap()
             .map(|result| result.map(|entry| entry.path()))
@@ -45,8 +48,30 @@ impl World {
         }
         
         Self {
+            camera: Default::default(),
+            path: String::from(path),
             chunks,
         }
+    }
+    
+    pub async fn reload(&mut self) {
+        let entries = std::fs::read_dir(self.path.as_str())
+            .unwrap()
+            .map(|result| result.map(|entry| entry.path()))
+            .collect::<Result<Vec<_>, std::io::Error>>()
+            .unwrap();
+
+        let mut chunks = vec![];
+        for entry in entries.iter() {
+            chunks.push(Chunk::load_from_file(entry.to_str().unwrap()).await);
+        }
+        
+        self.camera = Default::default();
+        self.chunks = chunks;
+    }
+    
+    pub fn update(&mut self) {
+        self.camera.update();
     }
     
     pub fn draw(&self) {

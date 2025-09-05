@@ -10,3 +10,4 @@ opt-level = 3
 egui-macroquad = "0.17.3"
 macroquad = "0.4.14"
 regex = "1.11.2"
+rfd = "0.15.4"
